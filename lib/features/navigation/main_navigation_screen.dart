@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../genieacs/device_list_screen.dart';
 import '../map/network_map_screen.dart';
@@ -53,7 +53,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
           ],
         ),
-        child: BottomNavigationBar(
+        child: SafeArea(
+          top: false,
+          bottom: true,
+          child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: _onNavigate,
           type: BottomNavigationBarType.fixed,
@@ -91,6 +94,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               label: 'Pengaturan',
             ),
           ],
+        ),
         ),
       ),
     );

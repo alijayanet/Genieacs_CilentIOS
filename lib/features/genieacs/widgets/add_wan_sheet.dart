@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/genieacs_provider.dart';
@@ -573,8 +573,12 @@ class _AddWanSheetState extends State<AddWanSheet> {
           ),
 
           // Bottom Submit Actions
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          SafeArea(
+            top: false,
+            bottom: true,
+            minimum: const EdgeInsets.only(bottom: 16),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
             decoration: BoxDecoration(
               color: AppColors.backgroundCard,
               border: Border(top: BorderSide(color: AppColors.cardBorder.withOpacity(0.5))),
@@ -622,6 +626,7 @@ class _AddWanSheetState extends State<AddWanSheet> {
                 ),
               ],
             ),
+          ),
           ),
         ],
       ),

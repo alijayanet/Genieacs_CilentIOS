@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -287,7 +287,10 @@ class _NetworkMapScreenState extends State<NetworkMapScreen> {
       ),
       body: _isWindowsDesktop
           ? _buildWindowsDesktopMap(context, provider, devices)
-          : Stack(
+          : SafeArea(
+              top: false,
+              bottom: true,
+              child: Stack(
               children: [
                 // WebView Leaflet Map
                 WebViewWidget(controller: _controller),
@@ -304,6 +307,7 @@ class _NetworkMapScreenState extends State<NetworkMapScreen> {
                     ),
                   ),
               ],
+            ),
             ),
     );
   }

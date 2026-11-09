@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -52,6 +52,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => AddWanSheet(
         deviceId: widget.device.id,
@@ -64,6 +65,30 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
         onWanConfigured: () {
           _fetchDetail();
         },
+      ),
+    );
+  }
+
+  void _openWifiModal({String? initialFocus}) {
+    final wlan = _detail?.primaryWlan;
+    final dev = widget.device;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => WifiConfigSheet(
+        deviceId: widget.device.id,
+        initialFocus: initialFocus,
+        wlan: wlan ??
+            WlanInstance(
+              index: 1,
+              ssid: dev.wlanSsid ?? widget.device.wlanSsid ?? '',
+              password: dev.wlanPassword ?? widget.device.wlanPassword ?? '',
+              enabled: true,
+              path: 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1',
+            ),
+        onSuccess: _fetchDetail,
       ),
     );
   }
@@ -244,7 +269,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
 
                   // Hardware & TR-069 Info
                   _buildHardwareCard(dev),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 48),
                 ],
               ),
             ),
@@ -263,9 +288,9 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
         child: SafeArea(
           top: false,
           bottom: true,
-          minimum: const EdgeInsets.only(bottom: 14),
+          minimum: const EdgeInsets.only(bottom: 22),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
             child: Row(
               children: [
                 Expanded(
@@ -307,25 +332,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
                       elevation: 2,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (ctx) => WifiConfigSheet(
-                          deviceId: widget.device.id,
-                          wlan: _detail?.primaryWlan ??
-                              WlanInstance(
-                                index: 1,
-                                ssid: dev.wlanSsid ?? '',
-                                password: dev.wlanPassword ?? '',
-                                enabled: true,
-                                path: 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1',
-                              ),
-                          onSuccess: _fetchDetail,
-                        ),
-                      );
-                    },
+                    onPressed: () => _openWifiModal(),
                   ),
                 ),
               ],
@@ -544,45 +551,101 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
                   minimumSize: const Size(50, 30),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                icon: const Icon(Icons.edit, size: 14),
-                label: const Text('Ubah', style: TextStyle(fontSize: 12)),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (ctx) => WifiConfigSheet(
-                      deviceId: widget.device.id,
-                      wlan: wlan ??
-                          WlanInstance(
-                            index: 1,
-                            ssid: widget.device.wlanSsid ?? '',
-                            password: widget.device.wlanPassword ?? '',
-                            enabled: true,
-                            path: 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1',
-                          ),
-                      onSuccess: _fetchDetail,
-                    ),
-                  );
-                },
+                icon: const Icon(Icons.settings, size: 14),
+                label: const Text('Kelola', style: TextStyle(fontSize: 12)),
+                onPressed: () => _openWifiModal(),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          _buildInfoRow(
-            label: 'Nama SSID',
-            value: ssid,
-            onCopy: () => _copyToClipboard('SSID', ssid),
+          const SizedBox(height: 14),
+
+          // Baris SSID dengan Tombol Ganti SSID Tersendiri
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Nama SSID (Wi-Fi)', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                    const SizedBox(height: 2),
+                    Text(
+                      ssid,
+                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.copy, size: 16, color: AppColors.textMuted),
+                tooltip: 'Salin SSID',
+                onPressed: () => _copyToClipboard('SSID', ssid),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accentCyan,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  minimumSize: const Size(0, 32),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  elevation: 0,
+                ),
+                icon: const Icon(Icons.drive_file_rename_outline, size: 13),
+                label: const Text('Simpan/Ganti SSID', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                onPressed: () => _openWifiModal(initialFocus: 'ssid'),
+              ),
+            ],
           ),
-          const Divider(color: AppColors.cardBorder, height: 16),
-          _buildInfoRow(
-            label: 'Kata Sandi',
-            value: pwd,
-            isMonospace: true,
-            onCopy: () => _copyToClipboard('Password WiFi', pwd),
+
+          const Divider(color: AppColors.cardBorder, height: 20),
+
+          // Baris Password dengan Tombol Ganti Password Tersendiri
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Kata Sandi (WPA/WPA2)', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                    const SizedBox(height: 2),
+                    Text(
+                      pwd,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.copy, size: 16, color: AppColors.textMuted),
+                tooltip: 'Salin Sandi',
+                onPressed: () => _copyToClipboard('Password WiFi', pwd),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accentEmerald,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  minimumSize: const Size(0, 32),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  elevation: 0,
+                ),
+                icon: const Icon(Icons.key, size: 13),
+                label: const Text('Simpan/Ganti Sandi', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                onPressed: () => _openWifiModal(initialFocus: 'password'),
+              ),
+            ],
           ),
+
           if (wlan != null) ...[
-            const Divider(color: AppColors.cardBorder, height: 16),
+            const Divider(color: AppColors.cardBorder, height: 20),
             _buildInfoRow(
               label: 'Status Radio',
               value: wlan.enabled ? 'Aktif (Radio ON)' : 'Nonaktif (Radio OFF)',
